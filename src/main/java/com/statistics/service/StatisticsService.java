@@ -1,48 +1,46 @@
 package com.statistics.service;
 
-import java.util.concurrent.PriorityBlockingQueue;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import com.statistics.comparator.TransactionTimestampComparator;
 import com.statistics.model.Statistics;
 import com.statistics.model.Transaction;
 
+@Lazy(false)
 @Service
 public class StatisticsService {
 
-    private static final int QUEUE_INITIAL_CAPACITY = 1000;
     private static final int POLLING_INTERVAL_RATE_MILLIS = 1;
 
-    private final PriorityBlockingQueue<Transaction> transactionsLast60Seconds =
-            new PriorityBlockingQueue<>(QUEUE_INITIAL_CAPACITY, new TransactionTimestampComparator());
-
-    private Statistics statistics = new Statistics(transactionsLast60Seconds);
+    private Map<Double,Transaction> transactions60Seconds = new HashMap<Double,Transaction>(TransactionService.TIME_LIMIT.intValue());
+    
+    private Statistics statistics = new Statistics(transactions60Seconds);
 
     @Scheduled(fixedRate = POLLING_INTERVAL_RATE_MILLIS)
     private void evictOldEntries() {
-        while (!transactionsLast60Seconds.isEmpty() && !transactionsLast60Seconds.peek().isNewerThanTimeLimit()) {
-            transactionsLast60Seconds.poll();
-        }
+        transactions60Seconds.entrySet().removeIf(entry -> !entry.getValue().isNewerThanTimeLimit());
         updateStatistics();
     }
 
-    public Statistics getStatistics() {
+    public void addTransaction(Double hash, Transaction transaction) {
+    	transactions60Seconds.put(hash, transaction);
+        updateStatistics();
+    }
+
+    private void updateStatistics() {
+        setStatistics(new Statistics(transactions60Seconds));
+    }
+
+	public Statistics getStatistics() {
 		return statistics;
 	}
 
 	public void setStatistics(Statistics statistics) {
 		this.statistics = statistics;
 	}
-
-	public void addTransaction(Transaction transaction) {
-        transactionsLast60Seconds.add(transaction);
-        updateStatistics();
-    }
-
-    private void updateStatistics() {
-        statistics = new Statistics(transactionsLast60Seconds);
-    }
     
 }

@@ -9,14 +9,15 @@ import com.statistics.singleton.TransactionsStorage;
 @Service
 public class TransactionService {
 
-    public static final int TIME_LIMIT = 60000;
+    public static final Long TIME_LIMIT = 60000L;
 
     @Autowired
     private StatisticsService statisticsService;
 
-    public void create(Transaction transaction) {
+    public void create(Long currentTimeMillis, Transaction transaction) {
+    	Double hash = ((currentTimeMillis.doubleValue() - transaction.getTimestamp().doubleValue()) / TransactionService.TIME_LIMIT.doubleValue());
     	TransactionsStorage.getInstance().addTransaction(transaction);
-        statisticsService.addTransaction(transaction);
+        statisticsService.addTransaction(hash, transaction);
     }
 
 }

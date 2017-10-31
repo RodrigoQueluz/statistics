@@ -2,20 +2,20 @@ package com.statistics.model;
 
 import static java.util.stream.Collectors.toList;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public class Statistics {
 
-    private Double sum;
+    private Double sum = 0D;
 
-    private Double avg;
+    private Double avg = 0D;
 
-    private Double max;
+    private Double max = 0D;
 
-    private Double min;
+    private Double min = 0D;
 
-    private Long count;
+    private Long count = 0L	;
 
     public Double getSum() {
 		return sum;
@@ -60,8 +60,8 @@ public class Statistics {
 	public Statistics() {
     }
 
-    public Statistics(Collection<Transaction> transactions) {
-        final List<Double> amountsLastMinute = transactions.stream().map(Transaction::getAmount).collect(toList());
+    public Statistics(Map<Double, Transaction> transactions60Seconds) {
+        final List<Double> amountsLastMinute = transactions60Seconds.values().stream().map(Transaction::getAmount).collect(toList());
         final Long count = amountsLastMinute.stream().count();
         this.setCount(count);
         if (count > 0) {

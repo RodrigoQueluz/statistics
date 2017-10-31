@@ -9,6 +9,7 @@ public class Transaction {
 	private Long timestamp;
 
 	public boolean isNewerThanTimeLimit() {
+		System.out.println(currentTimeMillis() - timestamp);
 		return currentTimeMillis() - timestamp <= TIME_LIMIT;
 	}
 
